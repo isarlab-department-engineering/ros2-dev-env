@@ -1,0 +1,27 @@
+services:
+  turtlebot3_sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ros2-humble-turtlebot3-sim
+    container_name: turtlebot3_sim
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - TURTLEBOT3_MODEL=burger
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - HOME=/tmp
+      - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libnss_wrapper.so
+      - NSS_WRAPPER_PASSWD=/tmp/passwd
+      - NSS_WRAPPER_GROUP=/tmp/group
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./ros2_ws:/workspace/ros2_ws
+      - ./bags:/workspace/bags
+    network_mode: host
+    ipc: host
+    pid: host
+    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    privileged: true
+    stdin_open: true
+    tty: true
