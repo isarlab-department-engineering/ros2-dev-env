@@ -21,6 +21,34 @@ From the repository root, run:
 
 The first run builds the Docker image. Later runs reuse the image unless the Docker configuration changes.
 
+To request NVIDIA GPU access for Gazebo and RViz2, use:
+
+```bash
+./start.sh --gpu
+```
+
+GPU mode requires Docker Desktop GPU support and an NVIDIA GPU available through WSL2. Without `--gpu`, the simulation uses software rendering.
+
+### WSL2 Host GPU Variables
+
+Add these variables to the WSL2 Ubuntu user's `~/.bashrc` on the host system:
+
+```bash
+export LIBVA_DRIVER_NAME=d3d12
+export GALLIUM_DRIVER=d3d12
+export MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA
+```
+
+Reload the shell after editing:
+
+```bash
+source ~/.bashrc
+```
+
+These variables must be set in the host WSL2 environment before running `./start.sh --gpu`. They select the NVIDIA adapter through the WSLg D3D12 OpenGL path.
+
+In GPU mode, the container also receives the WSLg Wayland runtime and NVIDIA graphics capabilities so Gazebo and RViz2 can use hardware OpenGL. If your WSL distribution exposes WSLg at a different runtime path, set `XDG_RUNTIME_DIR` before running `./start.sh --gpu`.
+
 Start the TurtleBot3 Burger simulation and RViz2:
 
 ```bash

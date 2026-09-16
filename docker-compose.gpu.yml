@@ -1,0 +1,21 @@
+services:
+  turtlebot3_sim:
+    gpus: all
+    environment:
+      LIBGL_ALWAYS_SOFTWARE: "0"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: graphics,display,utility,compute
+      WAYLAND_DISPLAY: ${WAYLAND_DISPLAY:-wayland-0}
+      XDG_RUNTIME_DIR: /tmp/xdg-runtime
+      DISPLAY: ${DISPLAY}
+      QT_X11_NO_MITSHM: "1"
+      LIBVA_DRIVER_NAME: d3d12
+      GALLIUM_DRIVER: d3d12
+      MESA_D3D12_DEFAULT_ADAPTER_NAME: NVIDIA
+    volumes:
+      - ${XDG_RUNTIME_DIR:-/mnt/wslg/runtime-dir}:/tmp/xdg-runtime:ro
+      - /mnt/wslg:/mnt/wslg:ro
+      - /usr/lib/wsl/lib:/usr/lib/wsl/lib:ro
+      - /usr/lib/wsl/drivers:/usr/lib/wsl/drivers:ro
+    devices:
+      - /dev/dxg:/dev/dxg
