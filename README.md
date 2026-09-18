@@ -106,6 +106,89 @@ Replay a recording later:
 ros2 bag play /workspace/bags/slam_run
 ```
 
+## Connecting to the Real Robot
+
+To use this environment with a physical TurtleBot3 instead of the simulation:
+
+1. Connect your host machine to the robot's Wi-Fi network.
+2. Set the same ROS domain used by the robot on every terminal/shell that talks to it (host and container):
+
+   ```bash
+   export ROS_DOMAIN_ID=30
+   ```
+
+   Add this line to `~/.bashrc` (both on the WSL2 host and, if needed, inside the container) so it is always set.
+3. Verify connectivity with `ros2 topic list`. You should see the robot's topics without starting the simulation.
+
+### WSL2 Networking Troubleshooting
+
+If `ros2 topic list` shows no topics from the robot, work through these steps in order:
+
+1. **WSL network mode.** On Windows, open (or create) `%UserProfile%\.wslconfig` and make sure networking is set to mirrored mode, with the firewall disabled for WSL:
+
+   ```ini
+   [wsl2]
+   networkingMode=mirrored
+
+   [experimental]
+   hostAddressLoopback=true
+   ```
+
+   Add under `[wsl2]`:
+
+   ```ini
+   firewall=false
+   ```
+
+   Restart WSL from PowerShell (`wsl --shutdown`) after editing this file.
+
+2. **RMW implementation.** Fast DDS often has trouble with multicast discovery through WSL2/Wi-Fi. Switch to Cyclone DDS:
+
+   ```bash
+   sudo apt install ros-humble-rmw-cyclonedds-cpp
+   export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+   ```
+
+   Add the `export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` line to `~/.bashrc` as well.
+
+3. **Wi-Fi network profile.** In Windows, set the robot's Wi-Fi network profile to **Private** (Settings > Network & Internet > Wi-Fi > your network > Network profile type). Public profiles block the discovery traffic ROS 2 needs.
+
+4. **Hyper-V firewall policy.** If topics are still not visible, allow inbound traffic on the Hyper-V virtual switch used by WSL2 from an elevated PowerShell prompt:
+
+   ```powershell
+   Get-NetFirewallHyperVVMSetting -PolicyStore ActiveStore
+   Set-NetFirewallHyperVVMSetting -Name '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -DefaultInboundAction Allow
+   ```
+
+5. **Multiple network interfaces.** If WSL2 exposes more than one network interface (for example `eth0` for a wired/virtual adapter and `eth1` for Wi-Fi), Cyclone DDS may pick the wrong one. Force it to use the Wi-Fi interface by creating `~/cyclonedds.xml`:
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <CycloneDDS xmlns="https://cdds.io/config">
+     <Domain id="any">
+       <General>
+         <Interfaces>
+           <NetworkInterface name="eth1" priority="default" multicast="true"/>
+         </Interfaces>
+       </General>
+     </Domain>
+   </CycloneDDS>
+   ```
+
+   Then add to `~/.bashrc`:
+
+   ```bash
+   export CYCLONEDDS_URI=file://$HOME/cyclonedds.xml
+   ```
+
+   Reload the shell and restart the ROS 2 daemon:
+
+   ```bash
+   source ~/.bashrc
+   ros2 daemon stop
+   ros2 topic list
+   ```
+
 ## Stop the Environment
 
 When you are finished, close Gazebo and RViz2, then run:
