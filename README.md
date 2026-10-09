@@ -19,13 +19,31 @@ From the repository root, run:
 ./start.sh
 ```
 
-The first run builds the Docker image. Later runs reuse the image unless the Docker configuration changes.
+The first run builds the Docker image and requires an internet connection. Later runs reuse the existing image and do not require internet, unless you pass `--rebuild`:
+
+```bash
+./start.sh --rebuild
+```
 
 To request NVIDIA GPU access for Gazebo and RViz2, use:
 
 ```bash
 ./start.sh --gpu
 ```
+
+To use Cyclone DDS and set the ROS domain ID, pass the corresponding options:
+
+```bash
+./start.sh --cyclone --domain-id 30
+```
+
+Options can be combined, for example:
+
+```bash
+./start.sh --gpu --cyclone --domain-id 30
+```
+
+`--domain-id` accepts values from `0` to `232` and defaults to `0`. `--cyclone` selects `rmw_cyclonedds_cpp`; the script checks whether `ros-humble-rmw-cyclonedds-cpp` is already installed in the local image and rebuilds it if the package is missing. The first build that installs Cyclone DDS requires an internet connection; later starts can use the local image. `--rebuild` explicitly rebuilds the image.
 
 GPU mode requires Docker Desktop GPU support and an NVIDIA GPU available through WSL2. Without `--gpu`, the simulation uses software rendering.
 
